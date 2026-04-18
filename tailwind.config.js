@@ -5,7 +5,14 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        // 'sans' font default (Inter)
+        sans: ['Inter', 'sans-serif'],
+        // 'display' untuk judul (Montserrat)
+        display: ['Montserrat', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }

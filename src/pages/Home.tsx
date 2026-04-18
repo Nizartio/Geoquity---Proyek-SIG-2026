@@ -63,7 +63,7 @@ export default function Home() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+          <div className="w-12 h-12 rounded-full border-4 border-[#2596be] border-t-transparent animate-spin" />
           <p className="text-gray-500 text-sm">Memuat data provinsi…</p>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function Home() {
           <p className="text-red-500 font-semibold text-lg mb-2">Terjadi Kesalahan</p>
           <p className="text-gray-500 text-sm">{error}</p>
           <button
-            className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+            className="mt-4 px-5 py-2 bg-[#2596be] text-white rounded-lg text-sm hover:opacity-90"
             onClick={() => window.location.reload()}
           >
             Coba Lagi
@@ -90,22 +90,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* ── Header ──────────────────────────────────────────────────────── */}
-      <header className="bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-lg">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+    {/* ── Header ──────────────────────────────────────────────────────── */}
+    {/* Hex */}
+    <header className="bg-[#2596be] text-white shadow-lg"> 
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {/* Logo */}
+          <img src="/Logo.png" alt="Logo Geoquity" className="h-16 w-auto object-contain" />
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
-              🗺️ Geoquity
+            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight">
+              Geoquity
             </h1>
-            <p className="text-blue-200 text-xs sm:text-sm mt-0.5">
+            <p className="text-blue-50 opacity-90 text-xs sm:text-sm mt-0.5">
               Dashboard Ketimpangan Ekonomi per Provinsi – Indonesia
             </p>
           </div>
-          <span className="hidden sm:block text-blue-300 text-xs">
-            Data: BPS {new Date().getFullYear()}
-          </span>
         </div>
-      </header>
+        <span className="hidden sm:block text-blue-50 text-xs font-medium">
+          Data: BPS {new Date().getFullYear()}
+        </span>
+      </div>
+    </header>
 
       {/* ── Main content ────────────────────────────────────────────────── */}
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-4 sm:px-6 py-6 flex flex-col gap-5">
@@ -117,7 +122,7 @@ export default function Home() {
             onChange={(province) => setSelectedProvinces(province ? [province] : [])}
           />
           {selectedProvinces.length > 0 && (
-            <span className="text-sm text-blue-700 font-medium">
+            <span className="text-sm text-[#2596be] font-medium">
               Menampilkan:{' '}
               <strong>
                 {selectedProvinces.length === 1
