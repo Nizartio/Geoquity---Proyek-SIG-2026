@@ -1,18 +1,18 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L, { GeoJSON as LeafletGeoJSON } from 'leaflet';
+import type { FeatureCollection, Geometry } from 'geojson';
 import 'leaflet/dist/leaflet.css';
-import type { Feature, GeoJsonObject } from 'geojson';
 import type { ProvinceData } from '../utils/inequality';
-import { getColor } from '../utils/colorScale';
-import geoData from '../data/indonesia.geojson';
+import { getColor, getScale } from '../utils/colorScale';
+import { loadIndonesiaProvinceGeoJson, normalizeProvinceName } from '../data/indonesia-province-normalized';
 
 interface MapProps {
   /** All province data records (with inequality index computed) */
   data: ProvinceData[];
-  /** Currently selected province name (empty string = none) */
-  selected: string;
+  /** Currently selected province names */
+  selected: string[];
   /** Called when the user clicks a province polygon */
-  onSelect: (province: string) => void;
+  onSelect: (province: string, additive: boolean) => void;
 }
 
 /**
@@ -26,9 +26,13 @@ export default function Map({ data, selected, onSelect }: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const geoLayerRef = useRef<LeafletGeoJSON | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [geoJsonData, setGeoJsonData] = useState<
+    FeatureCollection<Geometry, { name?: string }> | null
+  >(null);
 
   /** Build a lookup map for O(1) access by province name */
-  const dataMap = Object.fromEntries(data.map((d) => [d.province, d]));
+  const dataMap = Object.fromEntries(data.map((d) => [normalizeProvinceName(d.province), d]));
+  const colorScale = getScale();
 
   // ── Initialise map once ──────────────────────────────────────────────────
   useEffect(() => {
@@ -54,24 +58,42 @@ export default function Map({ data, selected, onSelect }: MapProps) {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    loadIndonesiaProvinceGeoJson()
+      .then((geojson) => {
+        if (!cancelled) {
+          setGeoJsonData(geojson as FeatureCollection<Geometry, { name?: string }>);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load map geojson', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // ── Re-render GeoJSON layer whenever data or selection changes ────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
+    if (!map || !geoJsonData) return;
 
     // Remove previous layer
     if (geoLayerRef.current) {
       geoLayerRef.current.remove();
     }
 
-    const layer = L.geoJSON(geoData as GeoJsonObject, {
+    const layer = L.geoJSON(geoJsonData, {
       style: (feature) => {
-        const name = (feature as Feature)?.properties?.name as string | undefined;
+        const name = (feature?.properties as { name?: string } | undefined)?.name;
         const record = name ? dataMap[name] : undefined;
-        const isSelected = name === selected;
+        const isSelected = !!name && selected.includes(name);
 
         return {
-          fillColor: record ? getColor(record.inequality ?? 0) : '#cccccc',
+          fillColor: record ? getColor(record.poverty) : '#cccccc',
           fillOpacity: 0.75,
           color: isSelected ? '#1d4ed8' : '#555',
           weight: isSelected ? 3 : 1,
@@ -79,7 +101,8 @@ export default function Map({ data, selected, onSelect }: MapProps) {
         };
       },
       onEachFeature: (feature, featureLayer) => {
-        const name = (feature as Feature)?.properties?.name as string | undefined;
+        const rawName = (feature.properties as { name?: string } | undefined)?.name;
+        const name = normalizeProvinceName(rawName);
         if (!name) return;
 
         const record = dataMap[name];
@@ -109,15 +132,17 @@ export default function Map({ data, selected, onSelect }: MapProps) {
         });
 
         // Click → select province
-        featureLayer.on('click', () => {
-          onSelect(name === selected ? '' : name);
+        featureLayer.on('click', (event: L.LeafletMouseEvent) => {
+          const originalEvent = event.originalEvent as MouseEvent;
+          const additive = originalEvent.ctrlKey || originalEvent.metaKey;
+          onSelect(name, additive);
         });
       },
     });
 
     layer.addTo(map);
     geoLayerRef.current = layer;
-  }, [data, selected, dataMap, onSelect]);
+  }, [data, selected, dataMap, onSelect, geoJsonData]);
 
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-md">
@@ -125,14 +150,8 @@ export default function Map({ data, selected, onSelect }: MapProps) {
 
       {/* Colour legend */}
       <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 rounded-xl shadow p-3 text-xs z-[1000]">
-        <p className="font-semibold text-gray-700 mb-1">Indeks Ketimpangan</p>
-        {[
-          { color: '#ffffcc', label: '< 10' },
-          { color: '#fed976', label: '10 – 20' },
-          { color: '#fd8d3c', label: '20 – 30' },
-          { color: '#f03b20', label: '30 – 40' },
-          { color: '#bd0026', label: '≥ 40' },
-        ].map(({ color, label }) => (
+        <p className="font-semibold text-gray-700 mb-1">Tingkat Kemiskinan (%)</p>
+        {[...colorScale].reverse().map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5 mt-0.5">
             <span className="w-4 h-4 rounded-sm inline-block" style={{ background: color }} />
             <span className="text-gray-600">{label}</span>

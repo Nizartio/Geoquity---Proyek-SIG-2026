@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import Map from '../components/Map';
-import Dashboard from '../components/Dashboard';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import StatsCard from '../components/StatsCard';
 import Filter from '../components/Filter';
 import { fetchProvinceData } from '../services/api';
 import { computeStats, type ProvinceData } from '../utils/inequality';
+
+const Map = lazy(() => import('../components/Map'));
+const Dashboard = lazy(() => import('../components/Dashboard'));
 
 /**
  * Home page – the single page of the Geoquity GIS Dashboard.
@@ -18,7 +19,7 @@ export default function Home() {
   const [data, setData] = useState<ProvinceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string>('');
+  const [selectedProvinces, setSelectedProvinces] = useState<string[]>([]);
 
   // ── Load data on mount ─────────────────────────────────────────────────
   useEffect(() => {
@@ -34,14 +35,27 @@ export default function Home() {
   }, []);
 
   // ── Derived state ──────────────────────────────────────────────────────
-  const displayData = selected ? data.filter((d) => d.province === selected) : data;
+  const displayData = selectedProvinces.length
+    ? data.filter((d) => selectedProvinces.includes(d.province))
+    : data;
   const stats = computeStats(displayData);
+  const primarySelected = selectedProvinces.length === 1 ? selectedProvinces[0] : '';
 
   const handleSelect = useCallback(
-    (province: string) => {
-      setSelected((prev) => (prev === province ? '' : province));
+    (province: string, additive: boolean) => {
+      setSelectedProvinces((prev) => {
+        if (!additive) {
+          return prev.length === 1 && prev[0] === province ? [] : [province];
+        }
+
+        return prev.includes(province) ? prev.filter((p) => p !== province) : [...prev, province];
+      });
     },
     []
+  );
+
+  const sectionLoader = (
+    <div className="w-full h-full min-h-[220px] bg-white rounded-2xl shadow-md animate-pulse" />
   );
 
   // ── Loading skeleton ───────────────────────────────────────────────────
@@ -99,14 +113,19 @@ export default function Home() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Filter
             provinces={data.map((d) => d.province)}
-            selected={selected}
-            onChange={setSelected}
+            selected={primarySelected}
+            onChange={(province) => setSelectedProvinces(province ? [province] : [])}
           />
-          {selected && (
+          {selectedProvinces.length > 0 && (
             <span className="text-sm text-blue-700 font-medium">
-              Menampilkan: <strong>{selected}</strong>
+              Menampilkan:{' '}
+              <strong>
+                {selectedProvinces.length === 1
+                  ? selectedProvinces[0]
+                  : `${selectedProvinces.length} provinsi terpilih`}
+              </strong>
               <button
-                onClick={() => setSelected('')}
+                onClick={() => setSelectedProvinces([])}
                 className="ml-2 text-gray-400 hover:text-gray-600 text-xs underline"
               >
                 Reset
@@ -120,19 +139,37 @@ export default function Home() {
           <StatsCard
             title="Rata-rata Kemiskinan"
             value={`${stats.avgPoverty}%`}
-            sub={selected || 'Semua Provinsi'}
+              sub={
+                selectedProvinces.length === 0
+                  ? 'Semua Provinsi'
+                  : selectedProvinces.length === 1
+                    ? selectedProvinces[0]
+                    : `${selectedProvinces.length} Provinsi`
+              }
             accent="bg-red-500"
           />
           <StatsCard
             title="Rata-rata Pendapatan Per Kapita"
             value={`Rp ${stats.avgIncome.toLocaleString('id-ID')} rb`}
-            sub={selected || 'Semua Provinsi'}
+              sub={
+                selectedProvinces.length === 0
+                  ? 'Semua Provinsi'
+                  : selectedProvinces.length === 1
+                    ? selectedProvinces[0]
+                    : `${selectedProvinces.length} Provinsi`
+              }
             accent="bg-green-500"
           />
           <StatsCard
             title="Rata-rata Indeks Ketimpangan"
             value={stats.avgInequality.toString()}
-            sub={selected || 'Semua Provinsi'}
+              sub={
+                selectedProvinces.length === 0
+                  ? 'Semua Provinsi'
+                  : selectedProvinces.length === 1
+                    ? selectedProvinces[0]
+                    : `${selectedProvinces.length} Provinsi`
+              }
             accent="bg-orange-500"
           />
         </div>
@@ -141,12 +178,16 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-5 flex-1">
           {/* Map – takes 60% on desktop */}
           <div className="lg:flex-[3] h-[450px] lg:h-auto min-h-[400px]">
-            <Map data={data} selected={selected} onSelect={handleSelect} />
+            <Suspense fallback={sectionLoader}>
+              <Map data={data} selected={selectedProvinces} onSelect={handleSelect} />
+            </Suspense>
           </div>
 
           {/* Dashboard charts – takes 40% on desktop */}
           <div className="lg:flex-[2] overflow-y-auto">
-            <Dashboard allData={data} selected={selected} />
+            <Suspense fallback={sectionLoader}>
+              <Dashboard allData={data} selectedProvinces={selectedProvinces} />
+            </Suspense>
           </div>
         </div>
       </main>

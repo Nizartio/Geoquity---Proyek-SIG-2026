@@ -16,8 +16,8 @@ import type { ProvinceData } from '../utils/inequality';
 interface DashboardProps {
   /** Full dataset (all provinces) */
   allData: ProvinceData[];
-  /** Currently selected province name (empty = show all) */
-  selected: string;
+  /** Currently selected provinces (empty = show all) */
+  selectedProvinces: string[];
 }
 
 /** Pie colours for top-5 poverty provinces */
@@ -29,14 +29,19 @@ const PIE_COLORS = ['#bd0026', '#f03b20', '#fd8d3c', '#fed976', '#ffffcc'];
  *  - Pie chart: share of top-5 poverty provinces
  *  - Scatter/bar chart: inequality index per province
  */
-export default function Dashboard({ allData, selected }: DashboardProps) {
-  // When a province is selected, highlight it; otherwise show top-10 by poverty
-  const chartData = selected
-    ? allData.filter((d) => d.province === selected)
+export default function Dashboard({ allData, selectedProvinces }: DashboardProps) {
+  const hasSelection = selectedProvinces.length > 0;
+  const filteredData = hasSelection
+    ? allData.filter((d) => selectedProvinces.includes(d.province))
+    : allData;
+
+  // When provinces are selected, show only selected rows; otherwise show top-10 by poverty
+  const chartData = hasSelection
+    ? filteredData
     : [...allData].sort((a, b) => b.poverty - a.poverty).slice(0, 10);
 
-  const inequalityData = selected
-    ? allData.filter((d) => d.province === selected)
+  const inequalityData = hasSelection
+    ? filteredData
     : [...allData].sort((a, b) => (b.inequality ?? 0) - (a.inequality ?? 0)).slice(0, 10);
 
   // Shorten province names for the axis (remove common words)
@@ -53,7 +58,11 @@ export default function Dashboard({ allData, selected }: DashboardProps) {
       {/* ── Bar Chart: Poverty Rate ───────────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow p-5">
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
-          {selected ? `Tingkat Kemiskinan – ${selected}` : 'Tingkat Kemiskinan (Top 10 Tertinggi)'}
+          {hasSelection
+            ? selectedProvinces.length === 1
+              ? `Tingkat Kemiskinan - ${selectedProvinces[0]}`
+              : `Tingkat Kemiskinan - ${selectedProvinces.length} Provinsi Terpilih`
+            : 'Tingkat Kemiskinan (Top 10 Tertinggi)'}
         </h3>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 40 }}>
@@ -81,7 +90,7 @@ export default function Dashboard({ allData, selected }: DashboardProps) {
       </div>
 
       {/* ── Pie Chart: Top-5 poverty share ───────────────────────────────── */}
-      {!selected && (
+      {!hasSelection && (
         <div className="bg-white rounded-2xl shadow p-5">
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
             Distribusi Kemiskinan – 5 Provinsi Teratas
@@ -120,8 +129,10 @@ export default function Dashboard({ allData, selected }: DashboardProps) {
       {/* ── Bar Chart: Inequality Index ───────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow p-5">
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
-          {selected
-            ? `Indeks Ketimpangan – ${selected}`
+          {hasSelection
+            ? selectedProvinces.length === 1
+              ? `Indeks Ketimpangan - ${selectedProvinces[0]}`
+              : `Indeks Ketimpangan - ${selectedProvinces.length} Provinsi Terpilih`
             : 'Indeks Ketimpangan (Top 10 Tertinggi)'}
         </h3>
         <ResponsiveContainer width="100%" height={220}>

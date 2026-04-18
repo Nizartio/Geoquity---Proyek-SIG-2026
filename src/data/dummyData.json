@@ -1,36 +1,192 @@
 [
-  { "province": "Aceh",                   "poverty": 14.45, "income": 32000 },
-  { "province": "Sumatera Utara",          "poverty": 8.42,  "income": 42000 },
-  { "province": "Sumatera Barat",          "poverty": 6.24,  "income": 41000 },
-  { "province": "Riau",                    "poverty": 6.82,  "income": 68000 },
-  { "province": "Jambi",                   "poverty": 7.62,  "income": 47000 },
-  { "province": "Sumatera Selatan",        "poverty": 11.98, "income": 39000 },
-  { "province": "Bengkulu",               "poverty": 14.34, "income": 33000 },
-  { "province": "Lampung",                "poverty": 11.52, "income": 36000 },
-  { "province": "Kepulauan Bangka Belitung","poverty": 4.98, "income": 54000 },
-  { "province": "Kepulauan Riau",          "poverty": 5.69,  "income": 61000 },
-  { "province": "DKI Jakarta",             "poverty": 4.44,  "income": 120000 },
-  { "province": "Jawa Barat",             "poverty": 7.44,  "income": 52000 },
-  { "province": "Jawa Tengah",            "poverty": 10.47, "income": 43000 },
-  { "province": "DI Yogyakarta",           "poverty": 11.04, "income": 49000 },
-  { "province": "Jawa Timur",             "poverty": 10.35, "income": 55000 },
-  { "province": "Banten",                  "poverty": 6.24,  "income": 58000 },
-  { "province": "Bali",                    "poverty": 4.25,  "income": 60000 },
-  { "province": "Nusa Tenggara Barat",    "poverty": 13.88, "income": 30000 },
-  { "province": "Nusa Tenggara Timur",    "poverty": 19.96, "income": 24000 },
-  { "province": "Kalimantan Barat",       "poverty": 7.13,  "income": 44000 },
-  { "province": "Kalimantan Tengah",      "poverty": 5.19,  "income": 55000 },
-  { "province": "Kalimantan Selatan",     "poverty": 4.63,  "income": 56000 },
-  { "province": "Kalimantan Timur",       "poverty": 6.11,  "income": 85000 },
-  { "province": "Kalimantan Utara",       "poverty": 6.83,  "income": 72000 },
-  { "province": "Sulawesi Utara",         "poverty": 7.34,  "income": 46000 },
-  { "province": "Sulawesi Tengah",        "poverty": 12.33, "income": 38000 },
-  { "province": "Sulawesi Selatan",       "poverty": 8.63,  "income": 45000 },
-  { "province": "Sulawesi Tenggara",      "poverty": 11.04, "income": 37000 },
-  { "province": "Gorontalo",              "poverty": 15.22, "income": 29000 },
-  { "province": "Sulawesi Barat",         "poverty": 11.20, "income": 31000 },
-  { "province": "Maluku",                 "poverty": 16.23, "income": 28000 },
-  { "province": "Maluku Utara",           "poverty": 6.93,  "income": 35000 },
-  { "province": "Papua Barat",            "poverty": 22.17, "income": 27000 },
-  { "province": "Papua",                  "poverty": 26.80, "income": 25000 }
+  {
+    "province": "Aceh",
+    "poverty": 12.8,
+    "income": 54700
+  },
+  {
+    "province": "Bali",
+    "poverty": 3.1,
+    "income": 73300
+  },
+  {
+    "province": "Banten",
+    "poverty": 11.9,
+    "income": 107700
+  },
+  {
+    "province": "Bengkulu",
+    "poverty": 12.7,
+    "income": 58600
+  },
+  {
+    "province": "DI Yogyakarta",
+    "poverty": 14,
+    "income": 50300
+  },
+  {
+    "province": "Dki Jakarta",
+    "poverty": 11,
+    "income": 72800
+  },
+  {
+    "province": "Gorontalo",
+    "poverty": 5.4,
+    "income": 52200
+  },
+  {
+    "province": "Jambi",
+    "poverty": 5.6,
+    "income": 50600
+  },
+  {
+    "province": "Jawa Barat",
+    "poverty": 8.7,
+    "income": 111200
+  },
+  {
+    "province": "Jawa Tengah",
+    "poverty": 5.6,
+    "income": 64900
+  },
+  {
+    "province": "Jawa Timur",
+    "poverty": 5.1,
+    "income": 81900
+  },
+  {
+    "province": "Kalimantan Barat",
+    "poverty": 5,
+    "income": 65400
+  },
+  {
+    "province": "Kalimantan Selatan",
+    "poverty": 9.4,
+    "income": 90100
+  },
+  {
+    "province": "Kalimantan Tengah",
+    "poverty": 4.6,
+    "income": 57800
+  },
+  {
+    "province": "Kalimantan Timur",
+    "poverty": 8,
+    "income": 71600
+  },
+  {
+    "province": "Kalimantan Utara",
+    "poverty": 4.8,
+    "income": 89700
+  },
+  {
+    "province": "Kepulauan Bangka Belitung",
+    "poverty": 9.1,
+    "income": 64500
+  },
+  {
+    "province": "Kepulauan Riau",
+    "poverty": 9,
+    "income": 66400
+  },
+  {
+    "province": "Lampung",
+    "poverty": 7,
+    "income": 68900
+  },
+  {
+    "province": "Maluku",
+    "poverty": 11.5,
+    "income": 58300
+  },
+  {
+    "province": "Maluku Utara",
+    "poverty": 17,
+    "income": 55200
+  },
+  {
+    "province": "Nusa Tenggara Barat",
+    "poverty": 11.5,
+    "income": 60300
+  },
+  {
+    "province": "Nusa Tenggara Timur",
+    "poverty": 16.1,
+    "income": 52800
+  },
+  {
+    "province": "Papua",
+    "poverty": 20,
+    "income": 58200
+  },
+  {
+    "province": "Papua Barat",
+    "poverty": 19.3,
+    "income": 61400
+  },
+  {
+    "province": "Papua Barat Daya",
+    "poverty": 20.8,
+    "income": 51400
+  },
+  {
+    "province": "Papua Pegunungan",
+    "poverty": 18.9,
+    "income": 53900
+  },
+  {
+    "province": "Papua Selatan",
+    "poverty": 25.4,
+    "income": 58500
+  },
+  {
+    "province": "Papua Tengah",
+    "poverty": 25.7,
+    "income": 57300
+  },
+  {
+    "province": "Riau",
+    "poverty": 12.3,
+    "income": 57500
+  },
+  {
+    "province": "Sulawesi Barat",
+    "poverty": 6.4,
+    "income": 64200
+  },
+  {
+    "province": "Sulawesi Selatan",
+    "poverty": 12.4,
+    "income": 59600
+  },
+  {
+    "province": "Sulawesi Tengah",
+    "poverty": 6.2,
+    "income": 48200
+  },
+  {
+    "province": "Sulawesi Tenggara",
+    "poverty": 12.5,
+    "income": 56300
+  },
+  {
+    "province": "Sulawesi Utara",
+    "poverty": 8.6,
+    "income": 51600
+  },
+  {
+    "province": "Sumatera Barat",
+    "poverty": 8.2,
+    "income": 57300
+  },
+  {
+    "province": "Sumatera Selatan",
+    "poverty": 15,
+    "income": 65700
+  },
+  {
+    "province": "Sumatera Utara",
+    "poverty": 8.1,
+    "income": 61900
+  }
 ]
