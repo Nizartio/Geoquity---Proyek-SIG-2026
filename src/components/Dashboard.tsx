@@ -54,7 +54,7 @@ export default function Dashboard({ allData, selectedProvinces }: DashboardProps
       .replace('Nusa Tenggara ', 'NT');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* ── Bar Chart: Poverty Rate ───────────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow p-5">
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
@@ -64,7 +64,7 @@ export default function Dashboard({ allData, selectedProvinces }: DashboardProps
               : `Tingkat Kemiskinan - ${selectedProvinces.length} Provinsi Terpilih`
             : 'Tingkat Kemiskinan (Top 10 Tertinggi)'}
         </h3>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={260}>
           <BarChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
             <XAxis
@@ -95,7 +95,7 @@ export default function Dashboard({ allData, selectedProvinces }: DashboardProps
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
             Distribusi Kemiskinan – 5 Provinsi Teratas
           </h3>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie
                 data={[...allData].sort((a, b) => b.poverty - a.poverty).slice(0, 5)}
@@ -135,7 +135,7 @@ export default function Dashboard({ allData, selectedProvinces }: DashboardProps
               : `Indeks Ketimpangan - ${selectedProvinces.length} Provinsi Terpilih`
             : 'Indeks Ketimpangan (Top 10 Tertinggi)'}
         </h3>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={260}>
           <BarChart data={inequalityData} margin={{ top: 4, right: 8, left: -16, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
             <XAxis

@@ -23,6 +23,8 @@ interface MapProps {
  * - Fires onSelect when a province is clicked
  */
 export default function Map({ data, selected, onSelect }: MapProps) {
+  const INDONESIA_CENTER: L.LatLngExpression = [-2.5, 118];
+  const INDONESIA_ZOOM = 5;
   const mapRef = useRef<L.Map | null>(null);
   const geoLayerRef = useRef<LeafletGeoJSON | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,8 +41,8 @@ export default function Map({ data, selected, onSelect }: MapProps) {
     if (!containerRef.current || mapRef.current) return;
 
     const map = L.map(containerRef.current, {
-      center: [-2.5, 118],
-      zoom: 5,
+      center: INDONESIA_CENTER,
+      zoom: INDONESIA_ZOOM,
       zoomControl: true,
     });
 
@@ -144,9 +146,23 @@ export default function Map({ data, selected, onSelect }: MapProps) {
     geoLayerRef.current = layer;
   }, [data, selected, dataMap, onSelect, geoJsonData]);
 
+  const recenterToIndonesia = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.flyTo(INDONESIA_CENTER, INDONESIA_ZOOM, { duration: 0.8 });
+  };
+
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-md">
       <div ref={containerRef} className="w-full h-full" />
+
+      <button
+        type="button"
+        onClick={recenterToIndonesia}
+        className="absolute top-4 right-4 z-[1100] bg-white text-[#0f5f79] text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg shadow hover:bg-slate-50 active:scale-[0.98] transition"
+      >
+        Kembali ke Indonesia
+      </button>
 
       {/* Colour legend */}
       <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 rounded-xl shadow p-3 text-xs z-[1000]">

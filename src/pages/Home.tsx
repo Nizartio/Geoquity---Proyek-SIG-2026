@@ -12,8 +12,9 @@ const Dashboard = lazy(() => import('../components/Dashboard'));
  *
  * Layout (responsive):
  *   - Header bar
- *   - Stats row (3 cards)
- *   - Main content: Map (left) + Dashboard charts (right)
+ *   - Filter controls
+ *   - Wide map section (top)
+ *   - Statistics cards + charts section (bottom)
  */
 export default function Home() {
   const [data, setData] = useState<ProvinceData[]>([]);
@@ -55,7 +56,7 @@ export default function Home() {
   );
 
   const sectionLoader = (
-    <div className="w-full h-full min-h-[220px] bg-white rounded-2xl shadow-md animate-pulse" />
+    <div className="w-full h-full min-h-[100px] bg-white rounded-2xl shadow-md animate-pulse" />
   );
 
   // ── Loading skeleton ───────────────────────────────────────────────────
@@ -139,61 +140,57 @@ export default function Home() {
           )}
         </div>
 
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatsCard
-            title="Rata-rata Kemiskinan"
-            value={`${stats.avgPoverty}%`}
-              sub={
-                selectedProvinces.length === 0
-                  ? 'Semua Provinsi'
-                  : selectedProvinces.length === 1
-                    ? selectedProvinces[0]
-                    : `${selectedProvinces.length} Provinsi`
-              }
-            accent="bg-red-500"
-          />
-          <StatsCard
-            title="Rata-rata Pendapatan Per Kapita"
-            value={`Rp ${stats.avgIncome.toLocaleString('id-ID')} rb`}
-              sub={
-                selectedProvinces.length === 0
-                  ? 'Semua Provinsi'
-                  : selectedProvinces.length === 1
-                    ? selectedProvinces[0]
-                    : `${selectedProvinces.length} Provinsi`
-              }
-            accent="bg-green-500"
-          />
-          <StatsCard
-            title="Rata-rata Indeks Ketimpangan"
-            value={stats.avgInequality.toString()}
-              sub={
-                selectedProvinces.length === 0
-                  ? 'Semua Provinsi'
-                  : selectedProvinces.length === 1
-                    ? selectedProvinces[0]
-                    : `${selectedProvinces.length} Provinsi`
-              }
-            accent="bg-orange-500"
-          />
+        {/* Wide map section */}
+        <div className="h-[400px] sm:h-[500px] lg:h-[560px] xl:h-[600px]">
+          <Suspense fallback={sectionLoader}>
+            <Map data={data} selected={selectedProvinces} onSelect={handleSelect} />
+          </Suspense>
         </div>
 
-        {/* Map + Dashboard side-by-side on desktop */}
-        <div className="flex flex-col lg:flex-row gap-5 flex-1">
-          {/* Map – takes 60% on desktop */}
-          <div className="lg:flex-[3] h-[450px] lg:h-auto min-h-[400px]">
-            <Suspense fallback={sectionLoader}>
-              <Map data={data} selected={selectedProvinces} onSelect={handleSelect} />
-            </Suspense>
+        {/* Bottom statistics section */}
+        <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <StatsCard
+              title="Rata-rata Kemiskinan"
+              value={`${stats.avgPoverty}%`}
+              sub={
+                selectedProvinces.length === 0
+                  ? 'Semua Provinsi'
+                  : selectedProvinces.length === 1
+                    ? selectedProvinces[0]
+                    : `${selectedProvinces.length} Provinsi`
+              }
+              accent="bg-red-500"
+            />
+            <StatsCard
+              title="Rata-rata Pendapatan Per Kapita"
+              value={`Rp ${stats.avgIncome.toLocaleString('id-ID')} rb`}
+              sub={
+                selectedProvinces.length === 0
+                  ? 'Semua Provinsi'
+                  : selectedProvinces.length === 1
+                    ? selectedProvinces[0]
+                    : `${selectedProvinces.length} Provinsi`
+              }
+              accent="bg-green-500"
+            />
+            <StatsCard
+              title="Rata-rata Indeks Ketimpangan"
+              value={stats.avgInequality.toString()}
+              sub={
+                selectedProvinces.length === 0
+                  ? 'Semua Provinsi'
+                  : selectedProvinces.length === 1
+                    ? selectedProvinces[0]
+                    : `${selectedProvinces.length} Provinsi`
+              }
+              accent="bg-orange-500"
+            />
           </div>
 
-          {/* Dashboard charts – takes 40% on desktop */}
-          <div className="lg:flex-[2] overflow-y-auto">
-            <Suspense fallback={sectionLoader}>
-              <Dashboard allData={data} selectedProvinces={selectedProvinces} />
-            </Suspense>
-          </div>
+          <Suspense fallback={sectionLoader}>
+            <Dashboard allData={data} selectedProvinces={selectedProvinces} />
+          </Suspense>
         </div>
       </main>
 
