@@ -97,15 +97,7 @@ export default function Home() {
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Logo */}
-          <img src="/Logo.png" alt="Logo Geoquity" className="h-16 w-auto object-contain" />
-          <div>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight">
-              Geoquity
-            </h1>
-            <p className="text-blue-50 opacity-90 text-xs sm:text-sm mt-0.5">
-              Dashboard Ketimpangan Ekonomi per Provinsi – Indonesia
-            </p>
-          </div>
+          <img src="/Logo.png" alt="Logo Geoquity" className="h-20 w-auto object-contain" />
         </div>
         <span className="hidden sm:block text-blue-50 text-xs font-medium">
           Data: BPS {new Date().getFullYear()}
