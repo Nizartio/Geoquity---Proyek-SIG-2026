@@ -16,52 +16,46 @@ type NormalizedProvinceProperties = RawProvinceProperties & {
 
 type NormalizedProvinceGeoJson = FeatureCollection<Geometry, NormalizedProvinceProperties>;
 
+// Keys are normalized form (uppercase, dots removed, single spaces), e.g. 'KEPULAUAN RIAU'
 const provinceNameMap: Record<string, string> = {
-  'BALI': 'Bali',
-  'BANGKA BELITUNG': 'Kepulauan Bangka Belitung',
-  'BENGKULU': 'Bengkulu',
-  'DAERAH KHUSUS IBUKOTA JAKARTA': 'DKI Jakarta',
-  'DAERAH ISTIMEWA YOGYAKARTA': 'DI Yogyakarta',
-  'DI YOGYAKARTA': 'DI Yogyakarta',
-  'DI. ACEH': 'Aceh',
-  'DI ACEH': 'Aceh',
-  'DKI JAKARTA': 'DKI Jakarta',
-  'GORONTALO': 'Gorontalo',
-  'IRIAN JAYA': 'Papua',
-  'IRIAN JAYA BARAT': 'Papua Barat',
-  'PAPUA BARAT': 'Papua Barat',
-  'IRIAN JAYA TENGAH': 'Papua Tengah',
-  'IRIAN JAYA TIMUR': 'Papua',
+  'ACEH': 'Aceh',
+  'SUMATERA UTARA': 'Sumatera Utara',
+  'SUMATERA BARAT': 'Sumatera Barat',
+  'RIAU': 'Riau',
+  'KEPULAUAN RIAU': 'Kepulauan Riau',
   'JAMBI': 'Jambi',
+  'BENGKULU': 'Bengkulu',
+  'SUMATERA SELATAN': 'Sumatera Selatan',
+  'KEPULAUAN BANGKA BELITUNG': 'Kepulauan Bangka Belitung',
+  'LAMPUNG': 'Lampung',
+  'BANTEN': 'Banten',
+  'DKI JAKARTA': 'DKI Jakarta',
   'JAWA BARAT': 'Jawa Barat',
   'JAWA TENGAH': 'Jawa Tengah',
+  'DI YOGYAKARTA': 'DI Yogyakarta',
   'JAWA TIMUR': 'Jawa Timur',
-  'KALIMANTAN BARAT': 'Kalimantan Barat',
-  'KALIMANTAN SELATAN': 'Kalimantan Selatan',
-  'KALIMANTAN TENGAH': 'Kalimantan Tengah',
-  'KALIMANTAN TIMUR': 'Kalimantan Timur',
-  'KALIMANTAN UTARA': 'Kalimantan Utara',
-  'KEPULAUAN RIAU': 'Kepulauan Riau',
-  'LAMPUNG': 'Lampung',
-  'MALUKU': 'Maluku',
-  'MALUKU UTARA': 'Maluku Utara',
+  'BALI': 'Bali',
   'NUSA TENGGARA BARAT': 'Nusa Tenggara Barat',
   'NUSA TENGGARA TIMUR': 'Nusa Tenggara Timur',
-  'NUSATENGGARA BARAT': 'Nusa Tenggara Barat',
-  'PAPUA BARAT DAYA': 'Papua Barat Daya',
+  'KALIMANTAN BARAT': 'Kalimantan Barat',
+  'KALIMANTAN TENGAH': 'Kalimantan Tengah',
+  'KALIMANTAN SELATAN': 'Kalimantan Selatan',
+  'KALIMANTAN TIMUR': 'Kalimantan Timur',
+  'KALIMANTAN UTARA': 'Kalimantan Utara',
+  'SULAWESI UTARA': 'Sulawesi Utara',
+  'SULAWESI TENGAH': 'Sulawesi Tengah',
+  'SULAWESI SELATAN': 'Sulawesi Selatan',
+  'SULAWESI TENGGARA': 'Sulawesi Tenggara',
+  'SULAWESI BARAT': 'Sulawesi Barat',
+  'GORONTALO': 'Gorontalo',
+  'MALUKU': 'Maluku',
+  'MALUKU UTARA': 'Maluku Utara',
+  'PAPUA': 'Papua',
+  'PAPUA BARAT': 'Papua Barat',
+  'PAPUA TENGAH': 'Papua Tengah',
   'PAPUA PEGUNUNGAN': 'Papua Pegunungan',
   'PAPUA SELATAN': 'Papua Selatan',
-  'PAPUA TENGAH': 'Papua Tengah',
-  'PROBANTEN': 'Banten',
-  'RIAU': 'Riau',
-  'SULAWESI SELATAN': 'Sulawesi Selatan',
-  'SULAWESI BARAT': 'Sulawesi Barat',
-  'SULAWESI TENGAH': 'Sulawesi Tengah',
-  'SULAWESI TENGGARA': 'Sulawesi Tenggara',
-  'SULAWESI UTARA': 'Sulawesi Utara',
-  'SUMATERA BARAT': 'Sumatera Barat',
-  'SUMATERA SELATAN': 'Sumatera Selatan',
-  'SUMATERA UTARA': 'Sumatera Utara',
+  'PAPUA BARAT DAYA': 'Papua Barat Daya',
 };
 
 function toTitleCase(value: string): string {
@@ -75,7 +69,19 @@ function toTitleCase(value: string): string {
 export function normalizeProvinceName(rawName?: string): string {
   if (!rawName) return '';
 
-  const normalizedKey = rawName.trim().toUpperCase().replace(/\./g, '').replace(/\s+/g, ' ');
+  // Normalize: uppercase, remove dots, expand common abbreviations (KEP → KEPULAUAN),
+  // collapse whitespace. This produces keys matching `provinceNameMap` above.
+  let normalizedKey = rawName.trim().toUpperCase();
+  normalizedKey = normalizedKey.replace(/\./g, '');
+  // Expand standalone 'KEP' abbreviation to 'KEPULAUAN'
+  normalizedKey = normalizedKey.replace(/\bKEP\b/g, 'KEPULAUAN');
+  // Normalize common long forms to canonical short forms
+  // e.g. 'DAERAH ISTIMEWA YOGYAKARTA' -> 'DI YOGYAKARTA'
+  normalizedKey = normalizedKey.replace(/\bDAERAH ISTIMEWA\b/g, 'DI');
+  // e.g. 'DAERAH KHUSUS IBUKOTA JAKARTA' -> 'DKI JAKARTA'
+  normalizedKey = normalizedKey.replace(/\bDAERAH KHUSUS IBUKOTA\b/g, 'DKI');
+  normalizedKey = normalizedKey.replace(/\s+/g, ' ').trim();
+
   return provinceNameMap[normalizedKey] ?? toTitleCase(normalizedKey);
 }
 

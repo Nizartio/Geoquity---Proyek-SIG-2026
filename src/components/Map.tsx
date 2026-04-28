@@ -159,17 +159,17 @@ export default function Map({ data, selected, onSelect }: MapProps) {
       <button
         type="button"
         onClick={recenterToIndonesia}
-        className="absolute top-4 right-4 z-[1100] bg-white text-[#0f5f79] text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg shadow hover:bg-slate-50 active:scale-[0.98] transition"
+        className="absolute top-3 right-3 z-[1100] bg-white/90 text-[#0f5f79] text-[11px] sm:text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow hover:bg-slate-50 active:scale-[0.98] transition"
       >
         Kembali ke Indonesia
       </button>
 
       {/* Colour legend */}
-      <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 rounded-xl shadow p-3 text-xs z-[1000]">
-        <p className="font-semibold text-gray-700 mb-1">Tingkat Kemiskinan (%)</p>
+      <div className="absolute bottom-3 right-3 bg-white/88 rounded-xl shadow p-2 text-[11px] z-[1000]">
+        <p className="font-semibold text-gray-700 mb-1">Kemiskinan (%)</p>
         {[...colorScale].reverse().map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-1.5 mt-0.5">
-            <span className="w-4 h-4 rounded-sm inline-block" style={{ background: color }} />
+          <div key={label} className="flex items-center gap-1 mt-0.5">
+            <span className="w-3 h-3 rounded-sm inline-block" style={{ background: color }} />
             <span className="text-gray-600">{label}</span>
           </div>
         ))}
