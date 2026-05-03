@@ -14,13 +14,13 @@ interface StatsCardProps {
  */
 export default function StatsCard({ title, value, sub, accent = 'bg-blue-500' }: StatsCardProps) {
   return (
-    <div className="bg-white rounded-2xl shadow p-5 flex items-start gap-4">
+    <div className="bg-white/85 backdrop-blur rounded-xl shadow border border-white/60 p-2.5 flex items-start gap-2 w-full min-w-0 max-w-none">
       {/* Coloured accent bar */}
-      <div className={`${accent} w-1.5 self-stretch rounded-full`} />
+      <div className={`${accent} w-1.5 self-stretch rounded-full shadow-sm`} />
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{title}</p>
-        <p className="mt-1 text-2xl font-bold text-gray-800">{value}</p>
-        {sub && <p className="mt-0.5 text-xs text-gray-500">{sub}</p>}
+        <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-[0.14em] leading-tight">{title}</p>
+        <p className="mt-0.5 text-base font-bold text-slate-900 leading-tight">{value}</p>
+        {sub && <p className="mt-0.5 text-[10px] text-slate-500 leading-tight">{sub}</p>}
       </div>
     </div>
   );

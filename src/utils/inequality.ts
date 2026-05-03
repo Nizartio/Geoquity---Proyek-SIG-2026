@@ -58,6 +58,6 @@ export function computeStats(data: ProvinceData[]) {
   return {
     avgPoverty: Math.round((sum.poverty / count) * 100) / 100,
     avgIncome: Math.round(sum.income / count),
-    avgInequality: Math.round((sum.inequality / count) * 10) / 10,
+    avgInequality: Math.round((sum.inequality / count) * 1000) / 1000,
   };
 }
