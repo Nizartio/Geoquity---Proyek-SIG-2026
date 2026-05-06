@@ -8,27 +8,19 @@ import { createClient } from '@supabase/supabase-js';
 import { normalizeProvinceName } from '../data/indonesia-province-normalized';
 import { ProvinceData } from '../utils/inequality';
 
-/** Supabase credentials (publishable/anon key) */
-const SUPABASE_URL = 'https://jkylndmvrladdaryrrlw.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_gPs8Dj_OlvEHaPrf9n7pEA_9TZFqyJ0';
+/** Supabase credentials (publishable/anon key) — read from Vite env vars. */
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string) || 'https://jkylndmvrladdaryrrlw.supabase.co';
+const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || 'sb_publishable_gPs8Dj_OlvEHaPrf9n7pEA_9TZFqyJ0';
+
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  console.warn('Warning: VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not set. Falling back to embedded keys.\nSet VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local and in your Vercel/hosting env vars.');
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /** Simulated network delay (ms) to demonstrate loading state */
 const SIMULATED_DELAY_MS = 600;
 
-/**
- * Fetch province data from Supabase table `data_ketimpangan` for tahun = 2025.
- *
- * Expected table columns (as provided):
- * - no
- * - kode_provinsi
- * - nama_provinsi
- * - tahun
- * - pdrb_per_kapita
- * - persen_miskin
- * - rasio_gini
- */
 export async function fetchProvinceData(year: number = 2025): Promise<ProvinceData[]> {
   // Keep a small artificial delay for consistent UX
   await new Promise((resolve) => setTimeout(resolve, SIMULATED_DELAY_MS));
