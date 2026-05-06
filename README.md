@@ -87,12 +87,6 @@ npm run build
 npm run preview
 ```
 
-## Pengaturan Supabase singkat
-
-1. Buat project Supabase dan atur table `data_ketimpangan` sesuai skema di atas.
-2. Upload/isi data BPS ke tabel tersebut. Pastikan nama provinsi sesuai dengan normalisasi yang dipakai aplikasi (lihat `src/data/indonesia-province-normalized.ts`).
-3. Atur Row Level Security (RLS) jika perlu; untuk pengembangan, Anda dapat menonaktifkan RLS atau gunakan anon key yang sesuai.
-
 ## Perilaku UI dan pengembangan
 
 - Slider tahun: `src/components/YearSlider.tsx` menampilkan nilai saat digeser tetapi hanya memanggil onChange ketika pengguna melepas/mengakhiri interaksi.
