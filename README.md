@@ -1,89 +1,152 @@
-# Geoquity – Web GIS Dashboard Ketimpangan Ekonomi Indonesia
+# Geoquity — Dashboard GIS Ketimpangan Ekonomi Indonesia
 
-Proyek Kelompok 6 dari Mata Kuliah Sistem Informasi Geografis dengan output berupa Dashboard Tingkat Ketimpangan Ekonomi per Provinsi Di Indonesia beserta Analisis dan Statistik datanya.
+Geoquity adalah dashboard berbasis web untuk eksplorasi ketimpangan ekonomi tingkat provinsi di Indonesia. Aplikasi menampilkan peta choropleth, ringkasan statistik, dan beberapa grafik interaktif untuk membandingkan provinsi berdasarkan data BPS.
 
-## 📸 Fitur
+## Ringkasan Fitur
 
-- 🗺️ **Peta Choropleth Interaktif** – peta Indonesia (level provinsi) diwarnai berdasarkan indeks ketimpangan
-- 📊 **Dashboard Statistik** – kartu ringkasan + bar chart + pie chart menggunakan Recharts
-- 🔎 **Filter Provinsi** – pilih provinsi dari dropdown atau klik di peta
-- 💬 **Tooltip** – hover di atas provinsi untuk melihat data detail
-- ⚡ **Loading & Error state** – animasi spinner & pesan error yang ramah pengguna
-- 📱 **Responsive** – tampilan berfungsi di desktop maupun mobile
+- Peta choropleth interaktif (level provinsi) dengan tooltip dan seleksi provinsi.
+- Panel ringkasan (Infographic) dengan filter provinsi dan statistik cepat.
+- Panel statistik kanan berisi kartu metrik utama (kemiskinan, pendapatan, indeks ketimpangan).
+- Panel bawah berisi grafik horizontal (bar/pie).
+- Ketiga panel ini dapat dicollapse
+- Slider tahun yang menampilkan nilai saat digeser tetapi hanya mengganti dataset saat pengguna melepas (commit-on-release).
+- Warna peta dan palet grafik tersentralisasi di `src/utils/colors.ts` dan `src/utils/colorScale.ts`.
 
-## 🛠️ Tech Stack
+## Tech stack
 
-| Kategori | Teknologi |
-|---|---|
-| Framework | React 18 + Vite + TypeScript |
-| Styling | Tailwind CSS |
-| Peta | Leaflet + react-leaflet |
-| Grafik | Recharts |
-| Linting | ESLint + Prettier |
+- React + Vite + TypeScript
+- Tailwind CSS
+- Leaflet (`react-leaflet`) untuk peta
+- Recharts untuk grafik
+- Supabase sebagai penyimpanan data (Postgres)
 
-## 📁 Struktur Folder
+## Struktur penting (singkat)
 
 ```
 src/
   components/
-    Map.tsx          # Leaflet choropleth map
-    Dashboard.tsx    # Recharts charts panel
-    StatsCard.tsx    # Summary statistic card
-    Filter.tsx       # Province dropdown filter
+    Map.tsx          # Leaflet map + GeoJSON handling (tahun-aware)
+    Dashboard.tsx    # Grafik dan charts
+    YearSlider.tsx   # Slider tahun (commit-on-release)
+    Filter.tsx       # Dropdown provinsi
   services/
-    api.ts           # Data fetching layer (mock → real API)
+    api.ts           # Layer akses data (Supabase client)
   utils/
-    inequality.ts    # Inequality index computation
-    colorScale.ts    # Value → color mapping
+    colorScale.ts
+    colors.ts
+    palettes.ts
+    inequality.ts
   data/
-    indonesia.geojson  # Simplified Indonesia province polygons
-    dummyData.json     # Mock province statistics
-  pages/
-    Home.tsx         # Main page layout
-  App.tsx
-  main.tsx
+    indonesia-provinces.json  # GeoJSON provinsi (primary)
+pages/
+  Home.tsx            # Layout, overlay panels, map wiring
 ```
 
-## 🚀 Cara Menjalankan
+## Data & Supabase
+
+Proyek ini menggunakan Supabase (Postgres) sebagai sumber data. Secara default `src/services/api.ts` sudah dikonfigurasi untuk membaca dari Supabase — sebagai pengembang pastikan environment variables berikut tersedia saat menjalankan dev server atau build:
+
+- `VITE_SUPABASE_URL` — URL Supabase project
+- `VITE_SUPABASE_ANON_KEY` — public anon key (atau service role key untuk server-side calls)
+
+Contoh tabel yang digunakan (nama tabel: `data_ketimpangan`):
+
+| kolom     | tipe    | keterangan |
+|-----------|---------|------------|
+| id        | serial  | primary key |
+| tahun     | integer | tahun data (mis. 2022) |
+| province  | text    | nama provinsi (dinormalisasi) |
+| poverty   | numeric | persentase kemiskinan |
+| income    | numeric | pendapatan per kapita |
+| inequality| numeric | indeks ketimpangan (hitung lokal) |
+
+Jika Anda belum menyiapkan Supabase, Anda bisa menggunakan file mock/data lokal pada `src/services/api.ts` untuk pengembangan cepat.
+
+## GeoJSON historis (Papua sebelum 2024)
+
+- Sumber GeoJSON utama: `src/data/indonesia-provinces.json`.
+- Untuk menampilkan batas administratif historis (tahun 2020–2023) proyek menggunakan sebuah pendekatan runtime: beberapa subdivisi di wilayah Papua digabung menjadi dua entitas legacy (`Papua`, `Papua Barat`) ketika `year` berada pada rentang 2020–2023.
+- Penggabungan ini dilakukan di `src/components/Map.tsx` (fungsi `loadIndonesiaProvinceGeoJson()` dan pembuatan `effectiveGeoJson`) — perubahan bersifat runtime dan tidak mengubah file sumber.
+
+## Cara menjalankan (development)
+
+1. Siapkan Node.js (v16+) dan npm
+2. Letakkan credential Supabase di file `.env` di root proyek (gunakan var `VITE_SUPABASE_URL` & `VITE_SUPABASE_ANON_KEY`) atau ekspor environment variabel.
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Jalankan development server
 npm run dev
-# → buka http://localhost:5173
+```
 
-# 3. Build untuk production
+Buka `http://localhost:5173`.
+
+## Build & Preview (production)
+
+```bash
 npm run build
-
-# 4. Preview hasil build
 npm run preview
 ```
 
-## 🔌 Mengganti dengan API Nyata
+## Pengaturan Supabase singkat
 
-Edit `src/services/api.ts` dan ganti fungsi `fetchProvinceData` dengan panggilan ke endpoint Metabase kalian:
+1. Buat project Supabase dan atur table `data_ketimpangan` sesuai skema di atas.
+2. Upload/isi data BPS ke tabel tersebut. Pastikan nama provinsi sesuai dengan normalisasi yang dipakai aplikasi (lihat `src/data/indonesia-province-normalized.ts`).
+3. Atur Row Level Security (RLS) jika perlu; untuk pengembangan, Anda dapat menonaktifkan RLS atau gunakan anon key yang sesuai.
 
-```ts
-const res = await fetch('https://metabase.example.com/api/card/XX/query/json');
-const raw = await res.json();
-return enrichWithInequality(raw);
+## Perilaku UI dan pengembangan
+
+- Slider tahun: `src/components/YearSlider.tsx` menampilkan nilai saat digeser tetapi hanya memanggil onChange ketika pengguna melepas/mengakhiri interaksi.
+- Panel kiri (Infographic) dan kanan (Stats) dapat dicollapse menjadi bar sempit; animasi transisi dioptimalkan untuk lebar, padding, transform, dan opacity.
+- Tombol `Kembali ke Indonesia` di header memicu reconter pada peta (lihat `pages/Home.tsx` untuk sinyal `recenterSignal`).
+
+## Pengembang: file yang perlu diperhatikan
+
+- `src/components/Map.tsx` — logika pemuatan GeoJSON, styling layer, dan merging Papua untuk tahun historis.
+- `src/services/api.ts` — fungsi akses data ke Supabase (`fetchProvinceData`, `fetchYearRange`).
+- `src/components/YearSlider.tsx` — perilaku slider commit-on-release dan bubble indicator.
+- `src/utils/colors.ts` & `src/utils/colorScale.ts` — definisi warna dan skala choropleth.
+
+## Lisensi & Kontribusi
+
+Proyek ini dibuat untuk tujuan pembelajaran akademik. Silakan hubungi kontributor proyek untuk diskusi lebih lanjut tentang penggunaan atau kontribusi.
+
+---
+
+Jika Anda mau, saya bisa:
+
+- Menambahkan tautan file langsung di README ke `Map.tsx` dan `YearSlider.tsx`.
+- Membuat file `DEVELOPER_NOTES.md` yang menjelaskan lebih detil fungsi penggabungan GeoJSON.
+
+Beritahu mana yang Anda ingin tambahkan selanjutnya.
+
+## 🗂️ Data dan GeoJSON historis
+
+- Proyek ini memuat GeoJSON provinsi Indonesia dari `src/data/indonesia-provinces.json`.
+- Untuk mempertahankan batas administratif historis sebelum 2024, aplikasi juga memakai satu sumber GeoJSON terpisah (disimpan dalam proyek) yang digunakan saat menampilkan peta untuk tahun-tahun 2020–2023. Pada rentang tahun tersebut, beberapa subdivisi di Papua digabung secara runtime menjadi dua entitas legacy: `Papua` dan `Papua Barat`.
+- Implementasi penggabungan dilakukan di `src/components/Map.tsx` — ini bersifat runtime (tidak memodifikasi file sumber). Jika Anda ingin mengubah perilaku atau memperbarui file GeoJSON, lihat fungsi `loadIndonesiaProvinceGeoJson()` dan cabang yang membentuk `effectiveGeoJson` berdasarkan prop `year`.
+
+## ℹ️ Catatan Fitur & UX
+
+- Slider tahun (`src/components/YearSlider.tsx`) menampilkan nilai saat digeser tapi hanya mengubah dataset ketika pengguna melepas (commit-on-release).
+- Panel kiri (Infographic), kanan (Stats) dan tray bawah memiliki mode collapse; peralihan animasi dioptimalkan untuk mengurangi getaran layout (transisi lebar, padding, transform, opacity).
+
+## 🧭 Menjalankan dan pengembangan
+
+Pastikan Node.js (v16+) dan npm terpasang lalu jalankan:
+
+```bash
+npm install
+npm run dev
 ```
 
-Format data yang diharapkan:
+Buka `http://localhost:5173`.
 
-```json
-[
-  { "province": "Jawa Timur", "poverty": 10.5, "income": 55000 }
-]
+Untuk mempersiapkan production build:
+
+```bash
+npm run build
+npm run preview
 ```
 
-## 📐 Indeks Ketimpangan
-
-```
-indeks = (poverty_rate) / (income_per_capita / 10000)
-```
-
-Nilai lebih tinggi → ketimpangan lebih besar.
+Jika Anda menggunakan Supabase/Metabase atau sumber data lain, sesuaikan `src/services/api.ts`.
 

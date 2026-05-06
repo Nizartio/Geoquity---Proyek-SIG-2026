@@ -83,3 +83,39 @@ export async function fetchProvinceData(year: number = 2025): Promise<ProvinceDa
 
   return [...deduped.values()];
 }
+
+/**
+ * Fetch earliest and latest year available in `data_ketimpangan`.
+ */
+export async function fetchYearRange(): Promise<{ earliest_year: number; latest_year: number }> {
+  // Small artificial delay to match UX
+  await new Promise((resolve) => setTimeout(resolve, SIMULATED_DELAY_MS));
+
+  // Get earliest (min) year
+  const { data: minRows, error: minError } = await supabase
+    .from('data_ketimpangan')
+    .select('tahun')
+    .order('tahun', { ascending: true })
+    .limit(1);
+
+  if (minError) {
+    console.error('Supabase fetch min year error:', minError);
+    throw new Error('Gagal memuat tahun awal dari database.');
+  }
+
+  const { data: maxRows, error: maxError } = await supabase
+    .from('data_ketimpangan')
+    .select('tahun')
+    .order('tahun', { ascending: false })
+    .limit(1);
+
+  if (maxError) {
+    console.error('Supabase fetch max year error:', maxError);
+    throw new Error('Gagal memuat tahun akhir dari database.');
+  }
+
+  const earliest_year = Array.isArray(minRows) && minRows.length ? Number(minRows[0].tahun) || 0 : 0;
+  const latest_year = Array.isArray(maxRows) && maxRows.length ? Number(maxRows[0].tahun) || 0 : 0;
+
+  return { earliest_year, latest_year };
+}

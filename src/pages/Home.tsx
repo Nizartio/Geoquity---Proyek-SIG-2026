@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useCallback, lazy, Suspense } from 'react
 import StatsCard from '../components/StatsCard';
 import Filter from '../components/Filter';
 import YearSlider from '../components/YearSlider';
-import { fetchProvinceData } from '../services/api';
+import { fetchProvinceData, fetchYearRange } from '../services/api';
 import { computeStats, type ProvinceData } from '../utils/inequality';
 
 const Map = lazy(() => import('../components/Map'));
@@ -10,11 +10,16 @@ const Dashboard = lazy(() => import('../components/Dashboard'));
 
 export default function Home() {
   const [year, setYear] = useState<number>(2025);
+  const [minYear, setMinYear] = useState<number>(2020);
+  const [maxYear, setMaxYear] = useState<number>(2025);
   const [data, setData] = useState<ProvinceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProvinces, setSelectedProvinces] = useState<string[]>([]);
   const [isTrayOpen, setIsTrayOpen] = useState(true);
+  const [isLeftOpen, setIsLeftOpen] = useState(true);
+  const [isRightOpen, setIsRightOpen] = useState(true);
+  const [recenterSignal, setRecenterSignal] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -28,6 +33,28 @@ export default function Home() {
         setLoading(false);
       });
   }, [year]);
+
+  // Load available year range on mount
+  useEffect(() => {
+    let mounted = true;
+    fetchYearRange()
+      .then(({ earliest_year, latest_year }) => {
+        if (!mounted) return;
+        if (earliest_year) setMinYear(earliest_year);
+        if (latest_year) {
+          setMaxYear(latest_year);
+          setYear(latest_year);
+        }
+      })
+      .catch((err: unknown) => {
+        // keep defaults if error
+        console.error(err);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const displayData = selectedProvinces.length
     ? data.filter((d) => selectedProvinces.includes(d.province))
@@ -100,7 +127,7 @@ export default function Home() {
     <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_#dbeaf4,_#eef4f8_40%,_#d3e0eb_100%)] text-slate-900">
       <div className="absolute inset-0 z-0">
         <Suspense fallback={sectionLoader}>
-          <Map data={data} selected={selectedProvinces} onSelect={handleSelect} />
+          <Map data={data} selected={selectedProvinces} onSelect={handleSelect} recenterSignal={recenterSignal} year={year} />
         </Suspense>
       </div>
 
@@ -120,78 +147,120 @@ export default function Home() {
               <span className="rounded-full bg-[#0f5f79] px-2.5 py-1 text-white font-semibold shadow-sm">
                 Data: BPS {year}
               </span>
-              <YearSlider min={2020} max={2025} value={year} onChange={setYear} />
+              <YearSlider min={minYear} max={maxYear} value={year} onChange={setYear} />
+            <div className="flex flex-col gap-1 sm:gap-2">
               <button
-                type="button"
-                onClick={() => setSelectedProvinces([])}
-                className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:bg-slate-50"
+              type="button"
+              onClick={() => setRecenterSignal((prev) => prev + 1)}
+              className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:bg-slate-50"
+              >
+                Kembali ke Indonesia
+              </button>
+              <button
+              type="button"
+              onClick={() => setSelectedProvinces([])}
+              className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-slate-600 hover:bg-slate-50"
               >
                 Reset pilihan
               </button>
             </div>
+              
+            </div>
           </div>
         </header>
 
-        <aside className="pointer-events-auto absolute left-2.5 sm:left-3 top-[100px] w-[236px] sm:w-[248px] max-h-[calc(100vh-152px)] overflow-hidden rounded-[20px] bg-white/56 backdrop-blur-xl border border-white/55 shadow-[0_12px_30px_rgba(15,95,121,0.08)] p-3 flex flex-col gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#0f5f79]">Infographic</p>
-            <h2 className="mt-1 text-lg font-bold text-slate-900">Ringkasan cepat</h2>
-            <p className="mt-1.5 text-xs text-slate-500">Pilih provinsi di peta atau gunakan filter untuk fokus ke wilayah tertentu.</p>
+        <aside
+          className={`pointer-events-auto absolute left-2.5 sm:left-3 top-[120px] ${isLeftOpen ? 'w-[236px] sm:w-[248px]' : 'w-12 sm:w-14'} max-h-[calc(100vh-152px)] overflow-hidden rounded-[20px] bg-white/56 backdrop-blur-xl border border-white/55 shadow-[0_12px_30px_rgba(15,95,121,0.08)] ${isLeftOpen ? 'p-3' : 'p-1.5'} flex flex-col gap-3 transition-all duration-300 ease-in-out`}
+          style={{ willChange: 'width, padding, transform, opacity' }}
+        >
+          <div className="flex items-center justify-between gap-2 mb-0 cursor-pointer" onClick={() => setIsLeftOpen(!isLeftOpen)}>
+            <div className={`transition-all duration-300 ease-in-out transform ${isLeftOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 pointer-events-none'}`}>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#0f5f79]">Infographic</p>
+              <h2 className="mt-1 text-lg font-bold text-slate-900">Ringkasan cepat</h2>
+              <p className="mt-1.5 text-xs text-slate-500">Pilih provinsi di peta atau gunakan filter untuk fokus ke wilayah tertentu.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="p-1.5 rounded-full hover:bg-white/60 text-slate-600 transition-colors shadow-sm bg-white/40 border border-white/50"
+                aria-label={isLeftOpen ? 'Tutup Infographic' : 'Buka Infographic'}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isLeftOpen ? 'rotate-90' : '-rotate-90'}`}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <Filter
-            provinces={data.map((d) => d.province)}
-            selected={primarySelected}
-            onChange={(province) => setSelectedProvinces(province ? [province] : [])}
-          />
+          <div className={`transition-all duration-300 ease-in-out transform ${isLeftOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 pointer-events-none'}`}>
+            <Filter
+              provinces={data.map((d) => d.province)}
+              selected={primarySelected}
+              onChange={(province) => setSelectedProvinces(province ? [province] : [])}
+            />
 
-          <div className="grid grid-cols-2 gap-1.5">
-            <div className="rounded-xl bg-[#eef8fb] p-3 border border-[#d8edf4]">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Provinsi aktif</p>
-              <p className="mt-1.5 text-xl font-bold text-slate-900">{selectedProvinces.length || data.length}</p>
+            <div className="grid grid-cols-2 gap-1.5 mt-3">
+              <div className="rounded-xl bg-[#eef8fb] p-3 border border-[#d8edf4]">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Provinsi aktif</p>
+                <p className="mt-1.5 text-xl font-bold text-slate-900">{selectedProvinces.length || data.length}</p>
+              </div>
+              <div className="rounded-xl bg-[#f7fbef] p-3 border border-[#e7f0cf]">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Data tampil</p>
+                <p className="mt-1.5 text-xl font-bold text-slate-900">{displayData.length}</p>
+              </div>
             </div>
-            <div className="rounded-xl bg-[#f7fbef] p-3 border border-[#e7f0cf]">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Data tampil</p>
-              <p className="mt-1.5 text-xl font-bold text-slate-900">{displayData.length}</p>
-            </div>
-          </div>
 
-          <div className="rounded-[16px] border border-slate-100 bg-slate-50/82 p-2.5 flex-1 min-h-0 overflow-auto">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-slate-700">Info pilihan</p>
-              <span className="text-xs text-slate-400">{selectedProvinces.length ? 'Aktif' : 'Semua'}</span>
-            </div>
-            <div className="mt-3 space-y-2 text-xs sm:text-sm text-slate-600">
-              <div className="rounded-xl bg-white p-2.5 shadow-sm border border-slate-100">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Wilayah</p>
-                <p className="mt-1 font-semibold text-slate-900">
-                  {selectedProvinces.length === 0
-                    ? 'Seluruh Indonesia'
-                    : selectedProvinces.length === 1
-                      ? selectedProvinces[0]
-                      : `${selectedProvinces.length} provinsi terpilih`}
-                </p>
+            <div className="rounded-[16px] border border-slate-100 bg-slate-50/82 p-2.5 flex-1 min-h-0 overflow-auto mt-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-slate-700">Info pilihan</p>
+                <span className="text-xs text-slate-400">{selectedProvinces.length ? 'Aktif' : 'Semua'}</span>
               </div>
-              <div className="rounded-xl bg-white p-2.5 shadow-sm border border-slate-100">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Kemiskinan</p>
-                <p className="mt-1 font-semibold text-slate-900">{stats.avgPoverty}%</p>
-              </div>
-              <div className="rounded-xl bg-white p-2.5 shadow-sm border border-slate-100">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Pendapatan</p>
-                <p className="mt-1 font-semibold text-slate-900">Rp {stats.avgIncome.toLocaleString('id-ID')} rb</p>
+              <div className="mt-3 space-y-2 text-xs sm:text-sm text-slate-600">
+                <div className="rounded-xl bg-white p-2.5 shadow-sm border border-slate-100">
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Wilayah</p>
+                  <p className="mt-1 font-semibold text-slate-900">
+                    {selectedProvinces.length === 0
+                      ? 'Seluruh Indonesia'
+                      : selectedProvinces.length === 1
+                        ? selectedProvinces[0]
+                        : `${selectedProvinces.length} provinsi terpilih`}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-white p-2.5 shadow-sm border border-slate-100">
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Kemiskinan</p>
+                  <p className="mt-1 font-semibold text-slate-900">{stats.avgPoverty}%</p>
+                </div>
+                <div className="rounded-xl bg-white p-2.5 shadow-sm border border-slate-100">
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Pendapatan</p>
+                  <p className="mt-1 font-semibold text-slate-900">Rp {stats.avgIncome.toLocaleString('id-ID')} rb</p>
+                </div>
               </div>
             </div>
           </div>
         </aside>
 
-        <aside className="pointer-events-auto absolute right-2.5 sm:right-3 top-[100px] w-[158px] sm:w-[168px] max-h-[calc(100vh-152px)] overflow-hidden rounded-[20px] bg-white/56 backdrop-blur-xl border border-white/55 shadow-[0_12px_30px_rgba(15,95,121,0.08)] p-2.5 flex flex-col gap-2">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#0f5f79]">Stats bar</p>
-            <h2 className="mt-1 text-sm sm:text-base font-bold text-slate-900">Rangkuman</h2>
-            <p className="mt-1 text-xs text-slate-500">Tiga kartu statistik utama.</p>
+        <aside className={`pointer-events-auto absolute right-2.5 sm:right-3 top-[120px] ${isRightOpen ? 'w-[158px] sm:w-[168px]' : 'w-12 sm:w-14'} max-h-[calc(100vh-152px)] overflow-hidden rounded-[20px] bg-white/56 backdrop-blur-xl border border-white/55 shadow-[0_12px_30px_rgba(15,95,121,0.08)] p-2.5 flex flex-col gap-2 transition-all duration-300 ease-in-out`}>
+          <div className="flex items-center justify-between gap-2 mb-0 cursor-pointer" onClick={() => setIsRightOpen(!isRightOpen)}>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="p-1.5 rounded-full hover:bg-white/60 text-slate-600 transition-colors shadow-sm bg-white/40 border border-white/50"
+                aria-label={isRightOpen ? 'Tutup Stats' : 'Buka Stats'}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isRightOpen ? '-rotate-90' : 'rotate-90'}`}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+            <div className={`${isRightOpen ? '' : 'hidden'}`}>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#0f5f79]">Stats bar</p>
+              <h2 className="mt-1 text-sm sm:text-base font-bold text-slate-900">Rangkuman</h2>
+              <p className="mt-1 text-xs text-slate-500">Tiga kartu statistik utama.</p>
+            </div>
+            
           </div>
 
-          <div className="flex flex-col gap-2 overflow-auto pr-1">
+          <div className={`flex flex-col gap-2 overflow-auto pr-1 transition-opacity duration-300 ${isRightOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             {statsCards.map((card) => (
               <StatsCard
                 key={card.title}
@@ -227,7 +296,7 @@ export default function Home() {
                   className="p-1.5 rounded-full hover:bg-white/60 text-slate-600 transition-colors shadow-sm bg-white/40 border border-white/50"
                   aria-label={isTrayOpen ? "Tutup Tray" : "Buka Tray"}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isTrayOpen ? 'rotate-180' : ''}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform duration-300 ${isTrayOpen ? '' : 'rotate-180'}`}>
                     <polyline points="6 9 12 15 18 9"></polyline>
                   </svg>
                 </button>

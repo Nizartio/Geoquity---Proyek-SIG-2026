@@ -1,5 +1,6 @@
 import type { FeatureCollection, Geometry } from 'geojson';
 import rawGeoJsonUrl from './indonesia-provinces.json?url';
+import rawPre2024GeoJsonUrl from './indonesia-provinces-pre2024.json?url';
 
 type RawProvinceProperties = {
   ID?: number;
@@ -85,7 +86,8 @@ export function normalizeProvinceName(rawName?: string): string {
   return provinceNameMap[normalizedKey] ?? toTitleCase(normalizedKey);
 }
 
-let cachedGeoJson: NormalizedProvinceGeoJson | null = null;
+// Cache the normalized GeoJSON by URL key so each variant is fetched once.
+const geoJsonCache = new Map<string, NormalizedProvinceGeoJson>();
 
 function normalizeGeoJson(
   featureCollection: FeatureCollection<Geometry, RawProvinceProperties>
@@ -102,15 +104,27 @@ function normalizeGeoJson(
   };
 }
 
-export async function loadIndonesiaProvinceGeoJson(): Promise<NormalizedProvinceGeoJson> {
-  if (cachedGeoJson) return cachedGeoJson;
+/**
+ * Load the Indonesia province GeoJSON appropriate for the given year.
+ *
+ * For years before 2024, the 6 post-pemekaran Papua provinces are merged
+ * back into the 2 original provinces (Papua and Papua Barat) to match
+ * the administrative boundaries that were in effect at the time.
+ */
+export async function loadIndonesiaProvinceGeoJson(year?: number): Promise<NormalizedProvinceGeoJson> {
+  const isPre2024 = year != null && year < 2024;
+  const url = isPre2024 ? rawPre2024GeoJsonUrl : rawGeoJsonUrl;
 
-  const response = await fetch(rawGeoJsonUrl);
+  const cached = geoJsonCache.get(url);
+  if (cached) return cached;
+
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to load province GeoJSON: ${response.status}`);
   }
 
   const rawGeoJson = (await response.json()) as FeatureCollection<Geometry, RawProvinceProperties>;
-  cachedGeoJson = normalizeGeoJson(rawGeoJson);
-  return cachedGeoJson;
+  const normalized = normalizeGeoJson(rawGeoJson);
+  geoJsonCache.set(url, normalized);
+  return normalized;
 }

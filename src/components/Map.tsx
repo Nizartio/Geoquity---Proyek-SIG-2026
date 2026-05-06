@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import L, { GeoJSON as LeafletGeoJSON } from 'leaflet';
 import type { FeatureCollection, Geometry } from 'geojson';
 import 'leaflet/dist/leaflet.css';
@@ -6,13 +6,20 @@ import type { ProvinceData } from '../utils/inequality';
 import { getColor, getScale } from '../utils/colorScale';
 import { loadIndonesiaProvinceGeoJson, normalizeProvinceName } from '../data/indonesia-province-normalized';
 
+const INDONESIA_CENTER: L.LatLngExpression = [-2.5, 118];
+const INDONESIA_ZOOM = 5;
+
 interface MapProps {
   /** All province data records (with inequality index computed) */
   data: ProvinceData[];
   /** Currently selected province names */
   selected: string[];
+  /** Incrementing value from parent to request recenter */
+  recenterSignal?: number;
   /** Called when the user clicks a province polygon */
   onSelect: (province: string, additive: boolean) => void;
+  /** Selected year — controls which provincial boundaries are shown */
+  year: number;
 }
 
 /**
@@ -22,9 +29,7 @@ interface MapProps {
  * - Shows a tooltip on hover (province name + key indicators)
  * - Fires onSelect when a province is clicked
  */
-export default function Map({ data, selected, onSelect }: MapProps) {
-  const INDONESIA_CENTER: L.LatLngExpression = [-2.5, 118];
-  const INDONESIA_ZOOM = 5;
+export default function Map({ data, selected, onSelect, recenterSignal = 0, year }: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const geoLayerRef = useRef<LeafletGeoJSON | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +68,7 @@ export default function Map({ data, selected, onSelect }: MapProps) {
   useEffect(() => {
     let cancelled = false;
 
-    loadIndonesiaProvinceGeoJson()
+    loadIndonesiaProvinceGeoJson(year)
       .then((geojson) => {
         if (!cancelled) {
           setGeoJsonData(geojson as FeatureCollection<Geometry, { name?: string }>);
@@ -76,7 +81,7 @@ export default function Map({ data, selected, onSelect }: MapProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [year]);
 
   // ── Re-render GeoJSON layer whenever data or selection changes ────────────
   useEffect(() => {
@@ -146,11 +151,17 @@ export default function Map({ data, selected, onSelect }: MapProps) {
     geoLayerRef.current = layer;
   }, [data, selected, dataMap, onSelect, geoJsonData]);
 
-  const recenterToIndonesia = () => {
+  const recenterToIndonesia = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
     map.flyTo(INDONESIA_CENTER, INDONESIA_ZOOM, { duration: 0.8 });
-  };
+  }, []);
+
+  useEffect(() => {
+    if (recenterSignal > 0) {
+      recenterToIndonesia();
+    }
+  }, [recenterSignal, recenterToIndonesia]);
 
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-md">

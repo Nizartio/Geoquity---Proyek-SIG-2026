@@ -12,6 +12,8 @@ import {
   Legend,
 } from 'recharts';
 import type { ProvinceData } from '../utils/inequality';
+import { pieColorsFor } from '../utils/palettes';
+import { CHOROPLETH_COLORS } from '../utils/colors';
 
 interface DashboardProps {
   /** Full dataset (all provinces) */
@@ -20,8 +22,7 @@ interface DashboardProps {
   selectedProvinces: string[];
 }
 
-/** Pie colours for top-5 poverty provinces */
-const PIE_COLORS = ['#bd0026', '#f03b20', '#fd8d3c', '#fed976', '#ffffcc'];
+
 
 /**
  * Dashboard panel containing:
@@ -44,6 +45,10 @@ export default function Dashboard({ allData, selectedProvinces }: DashboardProps
   const inequalityData = hasSelection
     ? filteredData
     : [...allData].sort((a, b) => (b.inequality ?? 0) - (a.inequality ?? 0)).slice(0, 10);
+
+  // Top-5 provinces by poverty (used by the pie chart)
+  const top5 = [...allData].sort((a, b) => b.poverty - a.poverty).slice(0, 5);
+  const pieColors = pieColorsFor(top5.map((d) => d.poverty));
 
   // Shorten province names for the axis (remove common words)
   const shorten = (name: string) =>
@@ -109,12 +114,12 @@ export default function Dashboard({ allData, selectedProvinces }: DashboardProps
                 outerRadius={chartHeight === 96 ? 28 : 36}
                 labelLine={false}
               >
-                {[...allData]
-                  .sort((a, b) => b.poverty - a.poverty)
-                  .slice(0, 5)
-                  .map((_, i) => (
-                    <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
+                {top5.map((_, i) => (
+                  <Cell
+                    key={`cell-${i}`}
+                    fill={pieColors[i] ?? CHOROPLETH_COLORS[i % CHOROPLETH_COLORS.length]}
+                  />
+                ))}
               </Pie>
               <Legend 
                 layout="vertical" 

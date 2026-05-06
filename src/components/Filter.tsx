@@ -13,7 +13,7 @@ interface FilterProps {
  */
 export default function Filter({ provinces, selected, onChange }: FilterProps) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 min-w-0">
       <label htmlFor="province-filter" className="text-sm font-medium text-gray-600">
         Filter Provinsi:
       </label>
@@ -21,7 +21,7 @@ export default function Filter({ provinces, selected, onChange }: FilterProps) {
         id="province-filter"
         value={selected}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm
+        className="min-w-0 max-w-[170px] rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm truncate
                    focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
       >
         <option value="">Semua Provinsi</option>
