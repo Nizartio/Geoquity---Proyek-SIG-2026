@@ -5,7 +5,7 @@
  * from light yellow (low) to dark red (severe).
  */
 
-import { CHOROPLETH_SCALE_POVERTY, CHOROPLETH_SCALE_INCOME, CHOROPLETH_SCALE_INEQUALITY, CHOROPLETH_COLORS, SEVERITY, GREEN_SEVERITY, BLUE_SEVERITY } from './colors';
+import { CHOROPLETH_SCALE_POVERTY, CHOROPLETH_SCALE_INCOME, CHOROPLETH_SCALE_INEQUALITY, SEVERITY, GREEN_SEVERITY, BLUE_SEVERITY } from './colors';
 
 export type MapMetric = 'poverty' | 'income' | 'inequality';
 
